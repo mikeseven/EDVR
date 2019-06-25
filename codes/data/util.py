@@ -59,6 +59,10 @@ def _read_img_lmdb(env, key, size):
     size: (C, H, W) tuple'''
     with env.begin(write=False) as txn:
         buf = txn.get(key.encode('ascii'))
+    if buf is None: 
+      raise Exception(f"no buffer for key {key}")
+      return None
+    
     img_flat = np.frombuffer(buf, dtype=np.uint8)
     C, H, W = size
     img = img_flat.reshape(H, W, C)
@@ -72,6 +76,10 @@ def read_img(env, path, size=None):
         img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
     else:
         img = _read_img_lmdb(env, path, size)
+    if img is None: 
+      raise Exception(f"no image at {path}")
+      return None
+    
     img = img.astype(np.float32) / 255.
     if img.ndim == 2:
         img = np.expand_dims(img, axis=2)
