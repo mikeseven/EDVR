@@ -15,12 +15,14 @@ import utils.util as util
 import data.util as data_util
 import models.modules.EDVR_arch as EDVR_arch
 
+# root path of EDVR repo
+root = osp.dirname(osp.abspath(__file__))
 
 def main():
     #################
     # configurations
     #################
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['CUDA_VISIBLE_DEVICES'] = 'all'
     data_mode = 'Vid4'  # Vid4 | sharp_bicubic | blur_bicubic | blur | blur_comp
     # Vid4: SR
     # REDS4: sharp_bicubic (SR-clean), blur_bicubic (SR-blur);
@@ -28,15 +30,15 @@ def main():
 
     #### model
     if data_mode == 'Vid4':
-        model_path = '../experiments/pretrained_models/EDVR_Vimeo90K_SR_L.pth'
+        model_path = osp.join(root,'experiments/pretrained_models/EDVR_Vimeo90K_SR_L.pth')
     elif data_mode == 'sharp_bicubic':
-        model_path = '../experiments/pretrained_models/EDVR_REDS_SR_L.pth'
+        model_path = osp.join(root,'experiments/pretrained_models/EDVR_REDS_SR_L.pth')
     elif data_mode == 'blur_bicubic':
-        model_path = '../experiments/pretrained_models/EDVR_REDS_SRblur_L.pth'
+        model_path = osp.join(root,'experiments/pretrained_models/EDVR_REDS_SRblur_L.pth')
     elif data_mode == 'blur':
-        model_path = '../experiments/pretrained_models/EDVR_REDS_deblur_L.pth'
+        model_path = osp.join(root,'experiments/pretrained_models/EDVR_REDS_deblur_L.pth')
     elif data_mode == 'blur_comp':
-        model_path = '../experiments/pretrained_models/EDVR_REDS_deblurcomp_L.pth'
+        model_path = osp.join(root,'experiments/pretrained_models/EDVR_REDS_deblurcomp_L.pth')
     else:
         raise NotImplementedError
     if data_mode == 'Vid4':
@@ -52,9 +54,9 @@ def main():
 
     #### dataset
     if data_mode == 'Vid4':
-        test_dataset_folder = '../datasets/Vid4/BIx4/*'
+        test_dataset_folder = osp.join(root,'datasets/Vid4/BIx4/*')
     else:
-        test_dataset_folder = '../datasets/REDS4/{}/*'.format(data_mode)
+        test_dataset_folder = osp.join(root,f'datasets/REDS4/{data_mode}/*')
 
     #### evaluation
     flip_test = False
@@ -68,17 +70,17 @@ def main():
     save_imgs = True
     ############################################################################
     device = torch.device('cuda')
-    save_folder = '../results/{}'.format(data_mode)
+    save_folder = osp.join(root,f'results/{data_mode}')
     util.mkdirs(save_folder)
     util.setup_logger('base', save_folder, 'test', level=logging.INFO, screen=True, tofile=True)
     logger = logging.getLogger('base')
 
     #### log info
-    logger.info('Data: {} - {}'.format(data_mode, test_dataset_folder))
-    logger.info('Padding mode: {}'.format(padding))
-    logger.info('Model path: {}'.format(model_path))
-    logger.info('Save images: {}'.format(save_imgs))
-    logger.info('Flip Test: {}'.format(flip_test))
+    logger.info(f'Data: {data_mode} - {test_dataset_folder}')
+    logger.info(f'Padding mode: {padding}'
+    logger.info(f'Model path: {model_path}')
+    logger.info(f'Save images: {save_imgs}')
+    logger.info(f'Flip Test: {flip_test}')
 
     def read_image(img_path):
         '''read one image from img_path
@@ -171,7 +173,7 @@ def main():
         if data_mode == 'Vid4':
             sub_folder_GT = osp.join(sub_folder.replace('/BIx4/', '/GT/'), '*')
         else:
-            sub_folder_GT = osp.join(sub_folder.replace('/{}/'.format(data_mode), '/GT/'), '*')
+            sub_folder_GT = osp.join(sub_folder.replace(f'/{data_mode}/', '/GT/'), '*')
         for img_GT_path in sorted(glob.glob(sub_folder_GT)):
             img_GT_l.append(read_image(img_GT_path))
 
@@ -260,11 +262,11 @@ def main():
                     'Center PSNR: {:.6f} dB. '
                     'Border PSNR: {:.6f} dB.'.format(name, psnr, psnr_center, psnr_border))
     logger.info('################ Final Results ################')
-    logger.info('Data: {} - {}'.format(data_mode, test_dataset_folder))
-    logger.info('Padding mode: {}'.format(padding))
-    logger.info('Model path: {}'.format(model_path))
-    logger.info('Save images: {}'.format(save_imgs))
-    logger.info('Flip Test: {}'.format(flip_test))
+    logger.info(f'Data: {data_mode} - {test_dataset_folder}')
+    logger.info(f'Padding mode: {padding}')
+    logger.info(f'Model path: {model_path}')
+    logger.info(f'Save images: {save_imgs}')
+    logger.info(f'Flip Test: {flip_test}')
     logger.info('Total Average PSNR: {:.6f} dB for {} clips. '
                 'Center PSNR: {:.6f} dB. Border PSNR: {:.6f} dB.'.format(
                     sum(avg_psnr_l) / len(avg_psnr_l), len(sub_folder_l),

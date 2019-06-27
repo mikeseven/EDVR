@@ -2,6 +2,10 @@ import math
 import torchvision.utils
 from data import create_dataloader, create_dataset
 from utils import util
+import os.path as osp
+
+# root path of EDVR repo
+root = osp.dirname(osp.abspath(__file__))
 
 opt = {}
 
@@ -9,8 +13,8 @@ opt = {}
 ## REDS
 #####################
 opt['name'] = 'test_REDS'
-opt['dataroot_GT'] = '/home/xtwang/datasets/REDS/train_sharp_wval.lmdb'
-opt['dataroot_LQ'] = '/home/xtwang/datasets/REDS/train_sharp_bicubic_wval.lmdb'
+opt['dataroot_GT'] = osp.join(root,'datasets/REDS/train/sharp_wval.lmdb')
+opt['dataroot_LQ'] = osp.join(root,'datasets/REDS/train/sharp_bicubic_wval.lmdb'
 opt['mode'] = 'REDS'
 opt['N_frames'] = 5
 opt['phase'] = 'train'
@@ -30,8 +34,8 @@ opt['cache_keys'] = 'REDS_trainval_keys.pkl'
 ## Vimeo90K
 #####################
 opt['name'] = 'test_Vimeo90K'
-opt['dataroot_GT'] = '/home/xtwang/datasets/vimeo90k/vimeo90k_train_GT.lmdb'
-opt['dataroot_LQ'] = '/home/xtwang/datasets/vimeo90k/vimeo90k_train_LR7frames.lmdb'
+opt['dataroot_GT'] = osp.join(root,'datasets/vimeo90k/vimeo90k_train_GT.lmdb')
+opt['dataroot_LQ'] = osp.join(root,'datasets/vimeo90k/vimeo90k_train_LR7frames.lmdb')
 opt['mode'] = 'Vimeo90K'
 opt['N_frames'] = 7
 opt['phase'] = 'train'
