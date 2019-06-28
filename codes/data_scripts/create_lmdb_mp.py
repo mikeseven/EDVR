@@ -61,22 +61,28 @@ def create_vimeo90k_LR(scale_factor=4):
             os.makedirs(directory)
 
     ### convert images
-    pbar = tqdm(total=nimgs)
+    pbar = tqdm(total=nimgs, unit='files')
 
+    # note: sequence 00007/0428/im2.png is bad
     def convert_image(img_path):
-        frame = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-        lr_h = frame.shape[0] // scale_factor
-        lr_w = frame.shape[1] // scale_factor
+        try:
+            frame = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
 
-        #    frame_lr = imresize(frame, (lr_h, lr_w), interp='bicubic') # scikit is on int, loose precision
-        frame_lr = cv2.resize(frame, (lr_h, lr_w), cv2.INTER_CUBIC);
-        file_lr = osp.join(img_folder_LR, img_path[len(img_folder_GT) + 1:])
-        #    print(f'Writing {lr_h}x{lr_w} as {file_lr}')
+            lr_h = frame.shape[0] // scale_factor
+            lr_w = frame.shape[1] // scale_factor
 
-        cv2.imwrite(file_lr, frame_lr)
+            #    frame_lr = imresize(frame, (lr_h, lr_w), interp='bicubic') # scikit is on int, loose precision
+            frame_lr = cv2.resize(frame, (lr_w, lr_h), cv2.INTER_CUBIC);
+            file_lr = osp.join(img_folder_LR, img_path[len(img_folder_GT) + 1:])
+            #    print(f'Writing {lr_h}x{lr_w} as {file_lr}')
+
+            cv2.imwrite(file_lr, frame_lr)
+        except:
+            print(f'Can NOT read {img_path}')
+            return
         pbar.update()
 
-    with ThreadPoolExecutor(multiprocessing.cpu_count()) as executor:
+    with ThreadPoolExecutor() as executor:
         executor.map(convert_image, all_img_list)
 
     pbar.close()
@@ -165,7 +171,7 @@ def vimeo90k(mode='GT', overwrite=True):
         # idx=int(a)*100+int(b)
         # print(f'Read [{idx}] {key_byte} = {img_path} data sz={len(data)}')
         H, W, C = data.shape  # fixed shape
-        assert H == H_dst and W == W_dst and C == 3, f'different shape {H}x{W}x{C} should be {H_dst}x{W_dst}x3.'
+        assert H == H_dst and W == W_dst and C == 3, 'different shape {H}x{W}x{C} should be {H_dst}x{W_dst}x3.'
 
         return key, data
 
@@ -291,7 +297,7 @@ def REDS(mode='train_sharp', overwrite=True):
             txn.put(key.encode('ascii'), data)
 
     env = lmdb.open(lmdb_save_path, map_size=data_size_per_img * nimgs * 10)
-    with ThreadPoolExecutor(multiprocessing.cpu_count()) as executor:
+    with ThreadPoolExecutor() as executor:
         executor.map(read_image, all_img_list)
 
     env.close()
@@ -333,14 +339,14 @@ def test_lmdb(dataroot, dataset='REDS'):
 
 
 if __name__ == "__main__":
-    #  vimeo90k('GT')
-    #
-    #  create_vimeo90k_LR()
+    # vimeo90k('GT')
+
+    create_vimeo90k_LR()
     vimeo90k('LR')
     test_lmdb(osp.join(root, 'datasets/vimeo90k/vimeo90k_train_GT.lmdb'), 'vimeo90k')
 
-#  modes=['train_sharp','train_sharp_bicubic','train_blur','train_blur_bicubic','train_blur_comp']
-#  for mode in modes:
-#    REDS(mode) 
-#  
-#  test_lmdb(osp.join(root,'datasets/REDS/train/sharp_wval.lmdb'), 'REDS')
+    # modes=['train_sharp','train_sharp_bicubic','train_blur','train_blur_bicubic','train_blur_comp']
+    # for mode in modes:
+    #     REDS(mode) 
+ 
+    # test_lmdb(osp.join(root,'datasets/REDS/train/sharp_wval.lmdb'), 'REDS')

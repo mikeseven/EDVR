@@ -18,4 +18,4 @@ num_gpus=5 # for GPU training
 python -m torch.distributed.launch --nproc_per_node=$num_gpus --master_port=4321 \
   train.py -opt options/train/train_EDVR_woTSA_M.yml \
   --launcher pytorch \
-#  > edvr_train.log 2>&1 & disown
+  > edvr_train.log 2>&1 & disown

@@ -38,9 +38,9 @@ class VideoSRBaseModel(BaseModel):
             #### loss
             loss_type = train_opt['pixel_criterion']
             if loss_type == 'l1':
-                self.cri_pix = nn.L1Loss(reduction='sum').to(self.device)
+                self.cri_pix = nn.L1Loss(reduction='mean').to(self.device)
             elif loss_type == 'l2':
-                self.cri_pix = nn.MSELoss(reduction='sum').to(self.device)
+                self.cri_pix = nn.MSELoss(reduction='mean').to(self.device)
             elif loss_type == 'cb':
                 self.cri_pix = CharbonnierLoss().to(self.device)
             else:
