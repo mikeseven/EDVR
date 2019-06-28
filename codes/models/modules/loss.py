@@ -11,5 +11,5 @@ class CharbonnierLoss(nn.Module):
 
     def forward(self, x, y):
         diff = x - y
-        loss = torch.sum(torch.sqrt(diff * diff + self.eps))
+        loss = torch.mean(torch.sqrt(diff * diff + self.eps))
         return loss

@@ -4,7 +4,7 @@ use_tb_logger: true
 model: VideoSR_base
 distortion: sr
 scale: 4
-gpu_ids: [0,1,2,3,4]
+gpu_ids: [0,1,2,3,4,5]
 
 #### datasets
 datasets:
@@ -21,7 +21,7 @@ datasets:
     N_frames: 5
     use_shuffle: true
     n_workers: 3  # per GPU
-    batch_size: 80 # must be a multiple of number of GPUs (default:32=8*4 for 8 GPUs)
+    batch_size: 24 # must be a multiple of number of GPUs (default:32=8*4 for 8 GPUs)
     GT_size: 256
     LQ_size: 64
     use_flip: true
@@ -42,15 +42,15 @@ network_G:
 
 #### path
 path:
-  pretrain_model_G: ~
-  resume_state: ~
-  #pretrain_model_G: ../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/models/38000_G.pth
-  #resume_state: ../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/training_state/38000.state
+  #pretrain_model_G: ~
+  #resume_state: ~
+  pretrain_model_G: ../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/models/85000_G.pth
+  resume_state: ../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/training_state/85000.state
   strict_load: true
 
 #### training settings: learning rate scheme, loss
 train:
-  lr_G: !!float 1e-4 # 4e-4 for 8 GPUs and 32 batch
+  lr_G: !!float 4e-4 # 4e-4 for 8 GPUs and 32 batch
   lr_scheme: CosineAnnealingLR_Restart
   beta1: 0.9
   beta2: 0.99

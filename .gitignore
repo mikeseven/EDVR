@@ -2,6 +2,11 @@ experiments/*
 results/*
 tb_logger/*
 .vscode
+.idea
+
+datasets/REDS
+datasets/vimeo90k
+datasets/vid4
 
 *.html
 *.png

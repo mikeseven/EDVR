@@ -14,7 +14,7 @@ df -h | grep shm
 source activate pytorch
 #python train.py -opt options/train/train_EDVR_woTSA_M.yml
 
-num_gpus=5 # for GPU training
+num_gpus=6 # for GPU training
 python -m torch.distributed.launch --nproc_per_node=$num_gpus --master_port=4321 \
   train.py -opt options/train/train_EDVR_woTSA_M.yml \
   --launcher pytorch \
