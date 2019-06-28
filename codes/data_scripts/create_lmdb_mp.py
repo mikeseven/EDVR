@@ -115,20 +115,26 @@ def vimeo90k(mode='GT',overwrite=True):
     with open(txt_file) as f:
         train_l = f.readlines()
         train_l = [v.strip() for v in train_l]
+
     all_img_list = []
+    keys=[]
 
     for line in train_l:
         folder = line.split('/')[0]
         sub_folder = line.split('/')[1]
         file_l = glob.glob(osp.join(img_folder, folder, sub_folder) + '/*')
         all_img_list.extend(file_l)
-        
+        for j in range(7):
+            keys.append(f'{folder}_{sub_folder}_{j+1}')
+
     all_img_list = sorted(all_img_list)
+    keys=sorted(keys)
 
     if mode == 'GT':  # read the 4th frame only for GT mode
         print('Only keep the 4th frame.')
         all_img_list = [v for v in all_img_list if v.endswith('im4.png')]
-    
+        keys = [v for v in keys if v.endswith('_4')]
+
     nimgs=len(all_img_list)
 
     #### read all images to memory (multiprocessing)
@@ -139,7 +145,6 @@ def vimeo90k(mode='GT',overwrite=True):
     
     pbar = tqdm(total=nimgs,unit='files')
 
-    keys=set() # meta-info key set
     def path2key(img_path):
       split_rlt = img_path.split('/')
       folder = split_rlt[-3]
@@ -150,9 +155,7 @@ def vimeo90k(mode='GT',overwrite=True):
 
     def read_image(img_path):
       folder, subfolder, file=path2key(img_path)
-      keys.add(f'{folder}_{subfolder}') # meta info only needs folder, subfolder
-      
-      key=f'{folder}_{subfolder}_{file}' # database key also includes file id
+      key=f'{folder}_{subfolder}_{file}'
       pbar.set_postfix(file=key, refresh=False)
       pbar.update()
       data = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
@@ -192,9 +195,14 @@ def vimeo90k(mode='GT',overwrite=True):
         meta_info['name'] = 'Vimeo90K_train_GT'
     elif mode == 'LR':
         meta_info['name'] = 'Vimeo90K_train_LR'
-    meta_info['resolution'] = f'{3}_{H_dst}_{W_dst}'
+    meta_info['resolution'] = f'3_{H_dst}_{W_dst}'
     
-    meta_info['keys'] = keys
+    key_set = set()
+    for key in keys:
+        a, b, _ = key.split('_')
+        key_set.add(f'{a}_{b}')
+        
+    meta_info['keys'] = key_set
     pickle.dump(meta_info, open(osp.join(lmdb_save_path, 'meta_info.pkl'), "wb"))
     print('Finish creating lmdb meta info.')
 
@@ -290,9 +298,9 @@ def REDS(mode = 'train_sharp',overwrite=True):
     meta_info = {}
     meta_info['name'] = f'REDS_{mode}_wval'
     if 'flow' in mode:
-        meta_info['resolution'] = f'{1}_{H_dst}_{W_dst}'
+        meta_info['resolution'] = f'1_{H_dst}_{W_dst}'
     else:
-        meta_info['resolution'] = f'{3}_{H_dst}_{W_dst}'
+        meta_info['resolution'] = f'3_{H_dst}_{W_dst}'
         
     keys=sorted(keys)
     meta_info['keys'] = keys
@@ -323,11 +331,11 @@ if __name__ == "__main__":
 #  vimeo90k('GT')
 #  
 #  create_vimeo90k_LR()      
-#  vimeo90k('LR')
-#  test_lmdb(osp.join(root,'datasets/vimeo90k/vimeo90k_train_GT.lmdb'), 'vimeo90k')
+  vimeo90k('LR')
+  test_lmdb(osp.join(root,'datasets/vimeo90k/vimeo90k_train_GT.lmdb'), 'vimeo90k')
   
-  modes=['train_sharp','train_sharp_bicubic','train_blur','train_blur_bicubic','train_blur_comp']
-  for mode in modes[0:1]:
-    REDS(mode) 
-  
-  test_lmdb(osp.join(root,'datasets/REDS/train/sharp_wval.lmdb'), 'REDS')
+#  modes=['train_sharp','train_sharp_bicubic','train_blur','train_blur_bicubic','train_blur_comp']
+#  for mode in modes:
+#    REDS(mode) 
+#  
+#  test_lmdb(osp.join(root,'datasets/REDS/train/sharp_wval.lmdb'), 'REDS')

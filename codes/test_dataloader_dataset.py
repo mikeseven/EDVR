@@ -65,7 +65,8 @@ def Vimeo90k_opts():
   opt['cache_keys'] = 'Vimeo90K_train_keys.pkl'
   return opt
 ###############################################################################
-opt = RED_opts() # or Vimeo90k_opts()
+#opt = RED_opts() # or Vimeo90k_opts()
+opt = Vimeo90k_opts()
 opt['data_type'] = 'lmdb'  # img | lmdb | mc
 opt['dist'] = False
 opt['gpu_ids'] = [0]
