@@ -10,7 +10,7 @@ import os.path as osp
 import os
 import glob
 import pickle
-from multiprocessing import Pool
+import multiprocessing
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 import numpy as np
@@ -75,12 +75,12 @@ def create_vimeo90k_LR(scale_factor=4):
     cv2.imwrite(file_lr, frame_lr)
     pbar.update()
     
-  with ThreadPoolExecutor() as executor:
+  with ThreadPoolExecutor(multiprocessing.cpu_count()) as executor:
     executor.map(convert_image,all_img_list)
 
   pbar.close()  
 
-def vimeo90k2(mode='GT',overwrite=True):
+def vimeo90k(mode='GT',overwrite=True):
     '''create lmdb for the Vimeo90K dataset, each image with fixed size
     GT: [3, 256, 448] Only need the 4th frame currently, e.g., 00001_0001_4
     LR: [3, 64, 112]  With 1st - 7th frames, e.g., 00001_0001_1, ..., 00001_0001_7
@@ -107,7 +107,7 @@ def vimeo90k2(mode='GT',overwrite=True):
         raise ValueError("lmdb_save_path must end with \'lmdb\'.")
     #### whether the lmdb file exist
     if not overwrite and osp.exists(lmdb_save_path):
-        print('Folder [{:s}] already exists. Exit...'.format(lmdb_save_path))
+        print(f'Folder [{lmdb_save_path}] already exists. Exit...')
         sys.exit(1)
 
     #### read all the image paths to a list
@@ -159,22 +159,11 @@ def vimeo90k2(mode='GT',overwrite=True):
 
       #idx=int(a)*100+int(b)
       #print(f'Read [{idx}] {key_byte} = {img_path} data sz={len(data)}')
-      #H, W, C = data.shape  # fixed shape
-      #assert H == H_dst and W == W_dst and C == 3, f'different shape {H}x{W}x{C} should be {H_dst}x{W_dst}x3.'
+      H, W, C = data.shape  # fixed shape
+      assert H == H_dst and W == W_dst and C == 3, f'different shape {H}x{W}x{C} should be {H_dst}x{W_dst}x3.'
 
       return key, data
     
-#    def store_image(fn):
-#      # must use thread-safe transaction
-#      with env.begin(write=True) as txn:
-#        cell=fn.result()
-#        txn.put(cell[0].encode('ascii'), cell[1])
-    
-#    with ThreadPoolExecutor() as executor:
-#      for img_path in all_img_list:
-#        res=executor.submit(read_image,img_path)
-#        res.add_done_callback(store_image)
-      
     item_id=1
     batch_size=1024
     env = lmdb.open(lmdb_save_path, map_size=data_size_per_img*nimgs*10)
@@ -203,13 +192,13 @@ def vimeo90k2(mode='GT',overwrite=True):
         meta_info['name'] = 'Vimeo90K_train_GT'
     elif mode == 'LR':
         meta_info['name'] = 'Vimeo90K_train_LR'
-    meta_info['resolution'] = '{}_{}_{}'.format(3, H_dst, W_dst)
+    meta_info['resolution'] = f'{3}_{H_dst}_{W_dst}'
     
     meta_info['keys'] = keys
     pickle.dump(meta_info, open(osp.join(lmdb_save_path, 'meta_info.pkl'), "wb"))
     print('Finish creating lmdb meta info.')
 
-def REDS2(mode = 'train_sharp',overwrite=True):
+def REDS(mode = 'train_sharp',overwrite=True):
     '''create lmdb for the REDS dataset, each image with fixed size
     GT: [3, 720, 1280], key: 000_00000000
     LR: [3, 180, 320], key: 000_00000000
@@ -247,7 +236,7 @@ def REDS2(mode = 'train_sharp',overwrite=True):
         raise ValueError("lmdb_save_path must end with \'lmdb\'.")
     #### whether the lmdb file exist
     if not overwrite and osp.exists(lmdb_save_path):
-        print('Folder [{:s}] already exists. Exit...'.format(lmdb_save_path))
+        print(f'Folder [{lmdb_save_path}] already exists. Exit...')
         sys.exit(1)
 
     #### read all the image paths to a list
@@ -279,8 +268,6 @@ def REDS2(mode = 'train_sharp',overwrite=True):
       pbar.update()
       data = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
 
-      #idx=int(a)*100+int(b)
-      #print(f'Read [{idx}] {key_byte} = {img_path} data sz={len(data)}')
       if 'flow' in mode:
         H, W = data.shape
         assert H == H_dst and W == W_dst, 'different shape.'
@@ -288,55 +275,24 @@ def REDS2(mode = 'train_sharp',overwrite=True):
         H, W, C = data.shape  # fixed shape
         assert H == H_dst and W == W_dst and C == 3, 'different shape.'
 
-        with env.begin(write=True) as txn:
-          txn.put(key.encode('ascii'), data)
-#      return key, data
-#    
-#    def store_image(fn):
-#      # must use thread-safe transaction
-#      with env.begin(write=True) as txn:
-#        cell=fn.result()
-#        txn.put(cell[0].encode('ascii'), cell[1])
-    
+      with env.begin(write=True) as txn:
+        txn.put(key.encode('ascii'), data)
+
     env = lmdb.open(lmdb_save_path, map_size=data_size_per_img*nimgs*10)
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(multiprocessing.cpu_count()) as executor:
       executor.map(read_image,all_img_list)
        
-#      # with futures
-#      for img_path in all_img_list:
-#        res=executor.submit(read_image,img_path)
-#        res.add_done_callback(store_image)
-
-#    # serial
-#    item_id=1
-#    batch_size=1024
-#    env = lmdb.open(lmdb_save_path, map_size=data_size_per_img*nimgs*10)
-#    txn=env.begin(write=True)
-#    for img_path in all_img_list:
-#      item_id+=1
-#      key,data=read_image(img_path)
-#      txn.put(key.encode('ascii'), data)
-#      
-#      # write batch
-#      if(item_id + 1) % batch_size == 0:
-#          txn.commit()
-#          txn = env.begin(write=True)
-#    
-#    # write last batch
-#    if (item_id+1) % batch_size != 0:
-#      txn.commit()
-
     env.close()
     pbar.close()  
     print('Finish writing lmdb.')
 
     #### create meta information
     meta_info = {}
-    meta_info['name'] = 'REDS_{}_wval'.format(mode)
+    meta_info['name'] = f'REDS_{mode}_wval'
     if 'flow' in mode:
-        meta_info['resolution'] = '{}_{}_{}'.format(1, H_dst, W_dst)
+        meta_info['resolution'] = f'{1}_{H_dst}_{W_dst}'
     else:
-        meta_info['resolution'] = '{}_{}_{}'.format(3, H_dst, W_dst)
+        meta_info['resolution'] = f'{3}_{H_dst}_{W_dst}'
         
     keys=sorted(keys)
     meta_info['keys'] = keys
@@ -364,14 +320,14 @@ def test_lmdb(dataroot, dataset='REDS'):
 
 
 if __name__ == "__main__":
-  vimeo90k2('GT')
-  
-  create_vimeo90k_LR()      
-  vimeo90k2('LR')
-  test_lmdb(osp.join(root,'datasets/vimeo90k/vimeo90k_train_GT.lmdb'), 'vimeo90k')
+#  vimeo90k('GT')
+#  
+#  create_vimeo90k_LR()      
+#  vimeo90k('LR')
+#  test_lmdb(osp.join(root,'datasets/vimeo90k/vimeo90k_train_GT.lmdb'), 'vimeo90k')
   
   modes=['train_sharp','train_sharp_bicubic','train_blur','train_blur_bicubic','train_blur_comp']
-  for mode in modes:
-    REDS2(mode) 
+  for mode in modes[0:1]:
+    REDS(mode) 
   
   test_lmdb(osp.join(root,'datasets/REDS/train/sharp_wval.lmdb'), 'REDS')
