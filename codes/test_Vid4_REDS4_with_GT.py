@@ -77,7 +77,7 @@ def main():
 
     #### log info
     logger.info(f'Data: {data_mode} - {test_dataset_folder}')
-    logger.info(f'Padding mode: {padding}'
+    logger.info(f'Padding mode: {padding}')
     logger.info(f'Model path: {model_path}')
     logger.info(f'Save images: {save_imgs}')
     logger.info(f'Flip Test: {flip_test}')

@@ -11,8 +11,8 @@ datasets:
   train:
     name: REDS
     mode: REDS
-    interval_list: [1]
-    random_reverse: false
+    interval_list: [1]    # for temporal augmentation
+    random_reverse: false # for temporal augmentation
     border_mode: false
     dataroot_GT: /home/mikael/code/EDVR/datasets/REDS/train/sharp_wval.lmdb
     dataroot_LQ: /home/mikael/code/EDVR/datasets/REDS/train/sharp_bicubic_wval.lmdb
@@ -20,25 +20,30 @@ datasets:
 
     N_frames: 5
     use_shuffle: true
-    n_workers: 3  # per GPU
-    batch_size: 24 # must be a multiple of number of GPUs (default:32=8*4 for 8 GPUs)
-    GT_size: 256
-    LQ_size: 64
+    n_workers: 3      # per GPU. Number of workers for dataset loader
+    batch_size: 24    # must be a multiple of number of GPUs (default:32=8*4 for 8 GPUs)
+    GT_size: 256      # size of patches for HR
+    LQ_size: 64       # size of patches for LR
     use_flip: true
     use_rot: true
     color: RGB
+  val:
+    name: val_REDS4
+    mode: REDS # REDS validation set with LQ (LR) and GT pairs
+    dataroot_GT: /home/mikael/code/EDVR/datasets/REDS4/GT
+    dataroot_LQ: /home/mikael/code/EDVR/datasets/REDS4/sharp_bicubic
 
 #### network structures
 network_G:
   which_model_G: EDVR
-  nf: 64
-  nframes: 5
-  groups: 8
-  front_RBs: 5
-  back_RBs: 10
-  predeblur: false
-  HR_in: false
-  w_TSA: false
+  nf: 64              # number of feature channels
+  nframes: 5          # number of frames
+  groups: 8           # number of deformable convolution groups
+  front_RBs: 5        # front residual buffers
+  back_RBs: 10        # back residual buffers
+  predeblur: false    # pre-deblurring
+  HR_in: false        # if HR image, adds 2 conv2d to scale input image down e.g. 4k -> 720p
+  w_TSA: false        # with Temporal and Spatial Attention
 
 #### path
 path:
@@ -51,23 +56,23 @@ path:
 #### training settings: learning rate scheme, loss
 train:
   lr_G: !!float 4e-4 # 4e-4 for 8 GPUs and 32 batch
-  lr_scheme: CosineAnnealingLR_Restart
-  beta1: 0.9
-  beta2: 0.99
-  niter: 600000
+  beta1: 0.9          # Adam beta1
+  beta2: 0.99         # Adam beta2
+  niter: 600000       # total number of iterations
   warmup_iter: -1  # -1: no warm up
-  T_period: [150000, 150000, 150000, 150000]
-  restarts: [150000, 300000, 450000]
-  restart_weights: [1, 1, 1]
-  eta_min: !!float 1e-7
+  lr_scheme: CosineAnnealingLR_Restart        # or MultiStepLR
+  T_period: [150000, 150000, 150000, 150000]  # params for Cosine Annealing (SGD with warm restarts)
+  restarts: [150000, 300000, 450000]          # params for Cosine Annealing
+  restart_weights: [1, 1, 1]                  # params for Cosine Annealing
+  eta_min: !!float 1e-7                       # params for Cosine Annealing
 
-  pixel_criterion: cb
+  pixel_criterion: cb # cb (Charbonnier) | l1 | l2
   pixel_weight: 1.0
-  val_freq: !!float 2e3
+  val_freq: !!float 2e3 # validation frequency
 
   manual_seed: 0
 
 #### logger
 logger:
-  print_freq: 100
-  save_checkpoint_freq: !!float 5e2
+  print_freq: 100                     # print frequency
+  save_checkpoint_freq: !!float 5e2   # checkpoint frequency
