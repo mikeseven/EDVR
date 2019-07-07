@@ -22,23 +22,31 @@ def main():
     #################
     # configurations
     #################
-    os.environ['CUDA_VISIBLE_DEVICES'] = 'all'
-    data_mode = 'Vid4'  # Vid4 | sharp_bicubic | blur_bicubic | blur | blur_comp
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    data_mode = 'sharp_bicubic'  # Vid4 | sharp_bicubic | blur_bicubic | blur | blur_comp
     # Vid4: SR
     # REDS4: sharp_bicubic (SR-clean), blur_bicubic (SR-blur);
     #        blur (deblur-clean), blur_comp (deblur-compression).
 
     #### model
     if data_mode == 'Vid4':
-        model_path = osp.join(root,'experiments/pretrained_models/EDVR_Vimeo90K_SR_L.pth')
+        model_path = osp.join(root,'../experiments/pretrained_models/EDVR_Vimeo90K_SR_L.pth')
     elif data_mode == 'sharp_bicubic':
-        model_path = osp.join(root,'experiments/pretrained_models/EDVR_REDS_SR_L.pth')
+#        model_path = osp.join(root,'../experiments/pretrained_models/EDVR_REDS_SR_L.pth')
+        
+        # stage 1
+#        iter_train=283500
+#        model_path = osp.join(root,f'../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/models/{iter_train}_G.pth')
+
+        # stage 2
+        iter_train=283500
+        model_path = osp.join(root,f'../experiments/002_EDVR_EDVRwoTSAIni_lr4e-4_600k_REDS_LrCAR4S_fixTSA50k/models/{iter_train}_G.pth')
     elif data_mode == 'blur_bicubic':
-        model_path = osp.join(root,'experiments/pretrained_models/EDVR_REDS_SRblur_L.pth')
+        model_path = osp.join(root,'../experiments/pretrained_models/EDVR_REDS_SRblur_L.pth')
     elif data_mode == 'blur':
-        model_path = osp.join(root,'experiments/pretrained_models/EDVR_REDS_deblur_L.pth')
+        model_path = osp.join(root,'../experiments/pretrained_models/EDVR_REDS_deblur_L.pth')
     elif data_mode == 'blur_comp':
-        model_path = osp.join(root,'experiments/pretrained_models/EDVR_REDS_deblurcomp_L.pth')
+        model_path = osp.join(root,'../experiments/pretrained_models/EDVR_REDS_deblurcomp_L.pth')
     else:
         raise NotImplementedError
     if data_mode == 'Vid4':
@@ -50,13 +58,18 @@ def main():
         predeblur = True
     if data_mode == 'blur' or data_mode == 'blur_comp':
         predeblur, HR_in = True, True
-    model = EDVR_arch.EDVR(128, N_in, 8, 5, 40, predeblur=predeblur, HR_in=HR_in)
+    
+    # large model
+#    model = EDVR_arch.EDVR(128, N_in, 8, 5, 40, predeblur=predeblur, HR_in=HR_in)
+
+    # medium model, during training
+    model = EDVR_arch.EDVR(64, N_in, 8, 5, 10, predeblur=predeblur, HR_in=HR_in, w_TSA=False)
 
     #### dataset
     if data_mode == 'Vid4':
-        test_dataset_folder = osp.join(root,'datasets/Vid4/BIx4/*')
+        test_dataset_folder = osp.join(root,'../datasets/Vid4/BIx4/*')
     else:
-        test_dataset_folder = osp.join(root,f'datasets/REDS4/{data_mode}/*')
+        test_dataset_folder = osp.join(root,f'../datasets/REDS4/{data_mode}/*')
 
     #### evaluation
     flip_test = False
@@ -70,7 +83,7 @@ def main():
     save_imgs = True
     ############################################################################
     device = torch.device('cuda')
-    save_folder = osp.join(root,f'results/{data_mode}')
+    save_folder = osp.join(root,f'../results/{data_mode}')
     util.mkdirs(save_folder)
     util.setup_logger('base', save_folder, 'test', level=logging.INFO, screen=True, tofile=True)
     logger = logging.getLogger('base')
@@ -146,6 +159,7 @@ def main():
         return output
 
     sub_folder_l = sorted(glob.glob(test_dataset_folder))
+
     #### set up the models
     model.load_state_dict(torch.load(model_path), strict=True)
     model.eval()
@@ -162,18 +176,20 @@ def main():
 
         img_path_l = sorted(glob.glob(sub_folder + '/*'))
         max_idx = len(img_path_l)
-
+        
         if save_imgs:
             util.mkdirs(save_sub_folder)
 
         #### read LR images
         imgs = read_seq_imgs(sub_folder)
+        
         #### read GT images
         img_GT_l = []
         if data_mode == 'Vid4':
             sub_folder_GT = osp.join(sub_folder.replace('/BIx4/', '/GT/'), '*')
         else:
             sub_folder_GT = osp.join(sub_folder.replace(f'/{data_mode}/', '/GT/'), '*')
+
         for img_GT_path in sorted(glob.glob(sub_folder_GT)):
             img_GT_l.append(read_image(img_GT_path))
 

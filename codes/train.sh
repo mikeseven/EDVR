@@ -15,7 +15,12 @@ source activate pytorch
 #python train.py -opt options/train/train_EDVR_woTSA_M.yml
 
 num_gpus=6 # for GPU training
+#python -m torch.distributed.launch --nproc_per_node=$num_gpus --master_port=4321 \
+#  train.py -opt options/train/train_EDVR_woTSA_M.yml \
+#  --launcher pytorch \
+#  > edvr_woTSA_train.log 2>&1 & disown
+
 python -m torch.distributed.launch --nproc_per_node=$num_gpus --master_port=4321 \
-  train.py -opt options/train/train_EDVR_woTSA_M.yml \
+  train.py -opt options/train/train_EDVR_M.yml \
   --launcher pytorch \
   > edvr_train.log 2>&1 & disown
