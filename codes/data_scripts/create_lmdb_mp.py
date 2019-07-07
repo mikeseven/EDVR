@@ -9,13 +9,18 @@ from multiprocessing import Pool
 import numpy as np
 import lmdb
 import cv2
+
+# root path of EDVR repo
+root = osp.dirname(osp.dirname(osp.abspath(__file__)))
+
 try:
-    sys.path.append(osp.dirname(osp.dirname(osp.abspath(__file__))))
+    sys.path.append(root)
     import data.util as data_util
     import utils.util as util
 except ImportError:
     pass
 
+root=osp.dirname(root)
 
 def reading_image_worker(path, key):
     '''worker for reading images'''
@@ -37,14 +42,14 @@ def vimeo90k():
     read_all_imgs = False  # whether real all images to the memory. Set False with limited memory
     BATCH = 5000  # After BATCH images, lmdb commits, if read_all_imgs = False
     if mode == 'GT':
-        img_folder = '/home/xtwang/datasets/vimeo90k/vimeo_septuplet/sequences'
-        lmdb_save_path = '/home/xtwang/datasets/vimeo90k/vimeo90k_train_GT.lmdb'
-        txt_file = '/home/xtwang/datasets/vimeo90k/vimeo_septuplet/sep_trainlist.txt'
+        img_folder = osp.join(root,'datasets/vimeo90k/vimeo_septuplet/sequences')
+        lmdb_save_path = osp.join(root,'datasets/vimeo90k/vimeo90k_train_GT.lmdb')
+        txt_file = osp.join(root,'datasets/vimeo90k/vimeo_septuplet/sep_trainlist.txt')
         H_dst, W_dst = 256, 448
     elif mode == 'LR':
-        img_folder = '/home/xtwang/datasets/vimeo90k/vimeo_septuplet_matlabLRx4/sequences'
-        lmdb_save_path = '/home/xtwang/datasets/vimeo90k/vimeo90k_train_LR7frames.lmdb'
-        txt_file = '/home/xtwang/datasets/vimeo90k/vimeo_septuplet/sep_trainlist.txt'
+        img_folder = osp.join(root,'datasets/vimeo90k/vimeo_septuplet_matlabLRx4/sequences')
+        lmdb_save_path = osp.join(root,'datasets/vimeo90k/vimeo90k_train_LR7frames.lmdb')
+        txt_file = osp.join(root,'datasets/vimeo90k/vimeo_septuplet/sep_trainlist.txt')
         H_dst, W_dst = 64, 112
     n_thread = 40
     ########################################################
@@ -148,24 +153,24 @@ def REDS():
     BATCH = 5000  # After BATCH images, lmdb commits, if read_all_imgs = False
     # train_sharp | train_sharp_bicubic | train_blur_bicubic| train_blur | train_blur_comp
     if mode == 'train_sharp':
-        img_folder = '/home/xtwang/datasets/REDS/train_sharp'
-        lmdb_save_path = '/home/xtwang/datasets/REDS/train_sharp_wval.lmdb'
+        img_folder = osp.join(root,'datasets/REDS/train/sharp')
+        lmdb_save_path = osp.join(root,'datasets/REDS/train/sharp_wval.lmdb')
         H_dst, W_dst = 720, 1280
     elif mode == 'train_sharp_bicubic':
-        img_folder = '/home/xtwang/datasets/REDS/train_sharp_bicubic'
-        lmdb_save_path = '/home/xtwang/datasets/REDS/train_sharp_bicubic_wval.lmdb'
+        img_folder = osp.join(root,'datasets/REDS/train/sharp_bicubic')
+        lmdb_save_path = osp.join(root,'datasets/REDS/train/sharp_bicubic_wval.lmdb')
         H_dst, W_dst = 180, 320
     elif mode == 'train_blur_bicubic':
-        img_folder = '/home/xtwang/datasets/REDS/train_blur_bicubic'
-        lmdb_save_path = '/home/xtwang/datasets/REDS/train_blur_bicubic_wval.lmdb'
+        img_folder = osp.join(root,'datasets/REDS/train/blur_bicubic')
+        lmdb_save_path = osp.join(root,'datasets/REDS/train/blur_bicubic_wval.lmdb')
         H_dst, W_dst = 180, 320
     elif mode == 'train_blur':
-        img_folder = '/home/xtwang/datasets/REDS/train_blur'
-        lmdb_save_path = '/home/xtwang/datasets/REDS/train_blur_wval.lmdb'
+        img_folder = osp.join(root,'datasets/REDS/train/blur')
+        lmdb_save_path = osp.join(root,'datasets/REDS/train/blur_wval.lmdb')
         H_dst, W_dst = 720, 1280
     elif mode == 'train_blur_comp':
-        img_folder = '/home/xtwang/datasets/REDS/train_blur_comp'
-        lmdb_save_path = '/home/xtwang/datasets/REDS/train_blur_comp_wval.lmdb'
+        img_folder = osp.join(root,'datasets/REDS/train/blur_comp')
+        lmdb_save_path = osp.join(root,'datasets/REDS/train/blur_comp_wval.lmdb')
         H_dst, W_dst = 720, 1280
     n_thread = 40
     ########################################################
@@ -271,4 +276,4 @@ def test_lmdb(dataroot, dataset='REDS'):
 if __name__ == "__main__":
     # vimeo90k()
     REDS()
-    # test_lmdb('/home/xtwang/datasets/REDS/train_sharp_wval.lmdb', 'REDS')
+    # test_lmdb(osp.join(root,'datasets/REDS/train_sharp_wval.lmdb', 'REDS')
