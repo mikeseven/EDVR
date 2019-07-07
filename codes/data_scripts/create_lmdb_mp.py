@@ -141,14 +141,13 @@ def vimeo90k():
     print('Finish creating lmdb meta info.')
 
 
-def REDS():
+def REDS(mode = 'train_sharp', overwrite = True):
     '''create lmdb for the REDS dataset, each image with fixed size
     GT: [3, 720, 1280], key: 000_00000000
     LR: [3, 180, 320], key: 000_00000000
     key: 000_00000000
     '''
     #### configurations
-    mode = 'train_sharp'
     read_all_imgs = False  # whether real all images to the memory. Set False with limited memory
     BATCH = 5000  # After BATCH images, lmdb commits, if read_all_imgs = False
     # train_sharp | train_sharp_bicubic | train_blur_bicubic| train_blur | train_blur_comp
@@ -177,7 +176,7 @@ def REDS():
     if not lmdb_save_path.endswith('.lmdb'):
         raise ValueError("lmdb_save_path must end with \'lmdb\'.")
     #### whether the lmdb file exist
-    if osp.exists(lmdb_save_path):
+    if not overwrite and osp.exists(lmdb_save_path):
         print('Folder [{:s}] already exists. Exit...'.format(lmdb_save_path))
         sys.exit(1)
 
@@ -275,5 +274,9 @@ def test_lmdb(dataroot, dataset='REDS'):
 
 if __name__ == "__main__":
     # vimeo90k()
-    REDS()
+
+    modes=['train_sharp','train_sharp_bicubic','train_blur','train_blur_bicubic','train_blur_comp']
+    for mode in modes:
+      REDS(mode) 
+      
     # test_lmdb(osp.join(root,'datasets/REDS/train_sharp_wval.lmdb', 'REDS')
