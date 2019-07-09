@@ -7,20 +7,31 @@ ipcs -lm
 df -h | grep shm
 
 # launch tensorboard in background for the whole duration (even if terminal is closed)
-# waits 15s before running tensorboard to make sure tb_logger is created and filled at first
-( sleep 15; tensorboard --port 8080 --logdir $PWD/../tb_logger > /dev/null 2>&1 ) & disown
+tensorboard --port $CDSW_PUBLIC_PORT --logdir $PWD/../tb_logger > /dev/null 2>&1 & disown
 
-# run code
+# run code in pytorch env
 source activate pytorch
-#python train.py -opt options/train/train_EDVR_woTSA_M.yml
 
-num_gpus=6 # for GPU training
-#python -m torch.distributed.launch --nproc_per_node=$num_gpus --master_port=4321 \
-#  train.py -opt options/train/train_EDVR_woTSA_M.yml \
-#  --launcher pytorch \
-#  > edvr_woTSA_train.log 2>&1 & disown
+NUM_GPUS=6      # for GPU training
+MODEL=EDVR
+MODEL_SIZE=L    # Large (L) or Medium (M)
+LR=4e-4         # learning rate
+BS=16           # batch size per GPU
 
-python -m torch.distributed.launch --nproc_per_node=$num_gpus --master_port=4321 \
-  train.py -opt options/train/train_EDVR_M.yml \
+### stage 1
+#python train.py -opt options/train/train_${MODEL}_woTSA_${MODEL_SIZE}.yml \
+#    > ${MODEL}_woTSA_train_${LR}_bs${BS}_${MODEL_SIZE}.log 2>&1 & disown
+
+python -m torch.distributed.launch --nproc_per_node=$NUM_GPUS --master_port=4321 \
+  train.py -opt options/train/train_${MODEL}_woTSA_${MODEL_SIZE}.yml \
   --launcher pytorch \
-  > edvr_train.log 2>&1 & disown
+  > ${MODEL}_woTSA_train_${LR}_bs${BS}_${MODEL_SIZE}.log 2>&1 & disown
+
+### stage 2
+#python train.py -opt options/train/train_${MODEL}_${MODEL_SIZE}.yml \
+#    > ${MODEL}_train_${LR}_bs${BS}_${MODEL_SIZE}.log 2>&1 & disown
+
+#python -m torch.distributed.launch --nproc_per_node=$NUM_GPUS --master_port=4321 \
+#  train.py -opt options/train/train_${MODEL}_${MODEL_SIZE}.yml \
+#  --launcher pytorch \
+#  > ${MODEL}_train_${LR}_bs${BS}_${MODEL_SIZE}.log 2>&1 & disown

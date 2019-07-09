@@ -57,7 +57,7 @@ def vimeo90k():
         raise ValueError("lmdb_save_path must end with \'lmdb\'.")
     #### whether the lmdb file exist
     if osp.exists(lmdb_save_path):
-        print('Folder [{:s}] already exists. Exit...'.format(lmdb_save_path))
+        print(f'Folder [{lmdb_save_path}] already exists. Exit...')
         sys.exit(1)
 
     #### read all the image paths to a list
@@ -73,7 +73,7 @@ def vimeo90k():
         file_l = glob.glob(osp.join(img_folder, folder, sub_folder) + '/*')
         all_img_list.extend(file_l)
         for j in range(7):
-            keys.append('{}_{}_{}'.format(folder, sub_folder, j + 1))
+            keys.append(f'{folder}_{sub_folder}_{j+1}')
     all_img_list = sorted(all_img_list)
     keys = sorted(keys)
     if mode == 'GT':  # read the 4th frame only for GT mode
@@ -84,21 +84,21 @@ def vimeo90k():
     if read_all_imgs:
         #### read all images to memory (multiprocessing)
         dataset = {}  # store all image data. list cannot keep the order, use dict
-        print('Read images with multiprocessing, #thread: {} ...'.format(n_thread))
+        print(f'Read images with multiprocessing, #thread: {n_thread} ...')
         pbar = util.ProgressBar(len(all_img_list))
 
         def mycallback(arg):
             '''get the image data and update pbar'''
             key = arg[0]
             dataset[key] = arg[1]
-            pbar.update('Reading {}'.format(key))
+            pbar.update(f'Reading {key}')
 
         pool = Pool(n_thread)
         for path, key in zip(all_img_list, keys):
             pool.apply_async(reading_image_worker, args=(path, key), callback=mycallback)
         pool.close()
         pool.join()
-        print('Finish reading {} images.\nWrite lmdb...'.format(len(all_img_list)))
+        print(f'Finish reading {len(all_img_list)} images.\nWrite lmdb...')
 
     #### create lmdb environment
     data_size_per_img = cv2.imread(all_img_list[0], cv2.IMREAD_UNCHANGED).nbytes
@@ -112,7 +112,7 @@ def vimeo90k():
     idx = 1
     for path, key in zip(all_img_list, keys):
         idx = idx + 1
-        pbar.update('Write {}'.format(key))
+        pbar.update(f'Write {key}')
         key_byte = key.encode('ascii')
         data = dataset[key] if read_all_imgs else cv2.imread(path, cv2.IMREAD_UNCHANGED)
         H, W, C = data.shape  # fixed shape
@@ -135,7 +135,7 @@ def vimeo90k():
     key_set = set()
     for key in keys:
         a, b, _ = key.split('_')
-        key_set.add('{}_{}'.format(a, b))
+        key_set.add(f'{a}_{b}')
     meta_info['keys'] = key_set
     pickle.dump(meta_info, open(osp.join(lmdb_save_path, 'meta_info.pkl'), "wb"))
     print('Finish creating lmdb meta info.')
@@ -177,7 +177,7 @@ def REDS(mode = 'train_sharp', overwrite = True):
         raise ValueError("lmdb_save_path must end with \'lmdb\'.")
     #### whether the lmdb file exist
     if not overwrite and osp.exists(lmdb_save_path):
-        print('Folder [{:s}] already exists. Exit...'.format(lmdb_save_path))
+        print(f'Folder [{lmdb_save_path}] already exists. Exit...')
         sys.exit(1)
 
     #### read all the image paths to a list
@@ -193,21 +193,21 @@ def REDS(mode = 'train_sharp', overwrite = True):
     if read_all_imgs:
         #### read all images to memory (multiprocessing)
         dataset = {}  # store all image data. list cannot keep the order, use dict
-        print('Read images with multiprocessing, #thread: {} ...'.format(n_thread))
+        print(f'Read images with multiprocessing, #thread: {n_thread} ...')
         pbar = util.ProgressBar(len(all_img_list))
 
         def mycallback(arg):
             '''get the image data and update pbar'''
             key = arg[0]
             dataset[key] = arg[1]
-            pbar.update('Reading {}'.format(key))
+            pbar.update(f'Reading {key}')
 
         pool = Pool(n_thread)
         for path, key in zip(all_img_list, keys):
             pool.apply_async(reading_image_worker, args=(path, key), callback=mycallback)
         pool.close()
         pool.join()
-        print('Finish reading {} images.\nWrite lmdb...'.format(len(all_img_list)))
+        print(f'Finish reading {len(all_img_list)} images.\nWrite lmdb...')
 
     #### create lmdb environment
     data_size_per_img = cv2.imread(all_img_list[0], cv2.IMREAD_UNCHANGED).nbytes
@@ -223,7 +223,7 @@ def REDS(mode = 'train_sharp', overwrite = True):
     idx = 1
     for path, key in zip(all_img_list, keys):
         idx = idx + 1
-        pbar.update('Write {}'.format(key))
+        pbar.update(f'Write {key}')
         key_byte = key.encode('ascii')
         data = dataset[key] if read_all_imgs else cv2.imread(path, cv2.IMREAD_UNCHANGED)
         if 'flow' in mode:
@@ -244,9 +244,9 @@ def REDS(mode = 'train_sharp', overwrite = True):
     meta_info = {}
     meta_info['name'] = 'REDS_{}_wval'.format(mode)
     if 'flow' in mode:
-        meta_info['resolution'] = '{}_{}_{}'.format(1, H_dst, W_dst)
+        meta_info['resolution'] = f'1_{H_dst}_{W_dst}')
     else:
-        meta_info['resolution'] = '{}_{}_{}'.format(3, H_dst, W_dst)
+        meta_info['resolution'] = f'{3}_{H_dst}_{W_dst}')
     meta_info['keys'] = keys
     pickle.dump(meta_info, open(osp.join(lmdb_save_path, 'meta_info.pkl'), "wb"))
     print('Finish creating lmdb meta info.')
@@ -263,7 +263,7 @@ def test_lmdb(dataroot, dataset='REDS'):
         key = '00001_0001_4'
     else:
         key = '000_00000000'
-    print('Reading {} for test.'.format(key))
+    print(f'Reading {key} for test.')
     with env.begin(write=False) as txn:
         buf = txn.get(key.encode('ascii'))
     img_flat = np.frombuffer(buf, dtype=np.uint8)

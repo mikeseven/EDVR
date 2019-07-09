@@ -54,12 +54,12 @@ class Vimeo90KDataset(data.Dataset):
 
         #### directly load image keys
         if opt['cache_keys']:
-            logger.info('Using cache keys: {}'.format(opt['cache_keys']))
+            logger.info(f"Using cache keys: {opt['cache_keys']}")
             cache_keys = opt['cache_keys']
         else:
             cache_keys = 'Vimeo90K_train_keys.pkl'
-        logger.info('Using cache keys - {}.'.format(cache_keys))
-        self.paths_GT = pickle.load(open('./data/{}'.format(cache_keys), 'rb'))
+        logger.info(f'Using cache keys - {cache_keys}.')
+        self.paths_GT = pickle.load(open(f'./data/{cache_keys}', 'rb'))
         assert self.paths_GT, 'Error: GT path is empty.'
 
         if self.data_type == 'lmdb':
@@ -69,7 +69,7 @@ class Vimeo90KDataset(data.Dataset):
         elif self.data_type == 'img':
             pass
         else:
-            raise ValueError('Wrong data type: {}'.format(self.data_type))
+            raise ValueError(f'Wrong data type: {self.data_type}')
 
     def _init_lmdb(self):
         # https://github.com/chainer/chainermn/issues/129
@@ -121,13 +121,13 @@ class Vimeo90KDataset(data.Dataset):
         for v in self.LQ_frames_list:
             if self.data_type == 'mc':
                 img_LQ = self._read_img_mc(
-                    osp.join(self.LQ_root, name_a, name_b, '{}.png'.format(v)))
+                    osp.join(self.LQ_root, name_a, name_b, f'{v}.png'))
                 img_LQ = img_LQ.astype(np.float32) / 255.
             elif self.data_type == 'lmdb':
-                img_LQ = util.read_img(self.LQ_env, key + '_{}'.format(v), LQ_size_tuple)
+                img_LQ = util.read_img(self.LQ_env, key + f'_{v}', LQ_size_tuple)
             else:
                 img_LQ = util.read_img(None,
-                                       osp.join(self.LQ_root, name_a, name_b, 'im{}.png'.format(v)))
+                                       osp.join(self.LQ_root, name_a, name_b, f'im{v}.png'))
             img_LQ_l.append(img_LQ)
 
         if self.opt['phase'] == 'train':

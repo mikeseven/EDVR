@@ -18,14 +18,14 @@ def is_image_file(filename):
 
 def _get_paths_from_images(path):
     '''get image path list from image folder'''
-    assert os.path.isdir(path), '{:s} is not a valid directory'.format(path)
+    assert os.path.isdir(path), f'{path} is not a valid directory'
     images = []
     for dirpath, _, fnames in sorted(os.walk(path)):
         for fname in sorted(fnames):
             if is_image_file(fname):
                 img_path = os.path.join(dirpath, fname)
                 images.append(img_path)
-    assert images, '{:s} has no valid image file'.format(path)
+    assert images, f'{path} has no valid image file'
     return images
 
 
@@ -49,7 +49,7 @@ def get_image_paths(data_type, dataroot):
         elif data_type == 'img':
             paths = sorted(_get_paths_from_images(dataroot))
         else:
-            raise NotImplementedError('data_type [{:s}] is not recognized.'.format(data_type))
+            raise NotImplementedError(f'data_type [{data_type}] is not recognized.')
     return paths, sizes
 
 
@@ -240,5 +240,5 @@ def modcrop(img_in, scale):
         H_r, W_r = H % scale, W % scale
         img = img[:H - H_r, :W - W_r, :]
     else:
-        raise ValueError('Wrong img ndim: [{:d}].'.format(img.ndim))
+        raise ValueError(f'Wrong img ndim: [{img.ndim}].')
     return img

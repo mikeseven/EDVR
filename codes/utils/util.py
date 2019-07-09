@@ -60,9 +60,9 @@ def mkdirs(paths):
 def mkdir_and_rename(path):
     if os.path.exists(path):
         new_name = path + '_archived_' + get_timestamp()
-        print('Path already exists. Rename it to [{:s}]'.format(new_name))
+        print(f'Path already exists. Rename it to [{new_name}]')
         logger = logging.getLogger('base')
-        logger.info('Path already exists. Rename it to [{:s}]'.format(new_name))
+        logger.info(f'Path already exists. Rename it to [{new_name}]')
         os.rename(path, new_name)
     os.makedirs(path)
 
@@ -81,7 +81,7 @@ def setup_logger(logger_name, root, phase, level=logging.INFO, screen=False, tof
                                   datefmt='%y-%m-%d %H:%M:%S')
     lg.setLevel(level)
     if tofile:
-        log_file = os.path.join(root, phase + '_{}.log'.format(get_timestamp()))
+        log_file = os.path.join(root, phase + f'_{get_timestamp()}.log')
         fh = logging.FileHandler(log_file, mode='w')
         fh.setFormatter(formatter)
         lg.addHandler(fh)
@@ -116,7 +116,7 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
         img_np = tensor.numpy()
     else:
         raise TypeError(
-            'Only support 4D, 3D and 2D tensor. But received with dimension: {:d}'.format(n_dim))
+            f'Only support 4D, 3D and 2D tensor. But received with dimension: {n_dim}')
     if out_type == np.uint8:
         img_np = (img_np * 255.0).round()
         # Important. Unlike matlab, numpy.unit8() WILL NOT round by default.
@@ -135,7 +135,7 @@ def DUF_downsample(x, scale=4):
         scale (int): downsampling factor: 2 | 3 | 4.
     """
 
-    assert scale in [2, 3, 4], 'Scale [{}] is not supported'.format(scale)
+    assert scale in [2, 3, 4], f'Scale [{scale}] is not supported'
 
     def gkern(kernlen=13, nsig=1.6):
         import scipy.ndimage.filters as fi
@@ -237,8 +237,8 @@ class ProgressBar(object):
         terminal_width, _ = get_terminal_size()
         max_bar_width = min(int(terminal_width * 0.6), terminal_width - 50)
         if max_bar_width < 10:
-            print('terminal width is too small ({}), please consider widen the terminal for better '
-                  'progressbar visualization'.format(terminal_width))
+            print(f'terminal width is too small ({terminal_width}), please consider widen the terminal for better '
+                  f'progressbar visualization')
             max_bar_width = 10
         return max_bar_width
 

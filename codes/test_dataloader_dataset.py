@@ -65,8 +65,7 @@ def Vimeo90k_opts():
   opt['cache_keys'] = 'Vimeo90K_train_keys.pkl'
   return opt
 ###############################################################################
-# opt = RED_opts() # or Vimeo90k_opts()
-opt = Vimeo90k_opts()
+opt = RED_opts() # or Vimeo90k_opts()
 opt['data_type'] = 'lmdb'  # img | lmdb | mc
 opt['dist'] = False
 opt['gpu_ids'] = [0]
@@ -91,7 +90,7 @@ for i, data in enumerate(train_loader):
 
     # save LQ images
     for j in range(LQs.size(1)):
-        torchvision.utils.save_image(LQs[:, j, :, :, :], 'tmp/LQ_{:03d}_{}.png'.format(i, j),
+        torchvision.utils.save_image(LQs[:, j, :, :, :], f'tmp/LQ_{i:03d}_{j}.png',
                                      nrow=nrow, padding=padding, normalize=False)
-    torchvision.utils.save_image(GT, 'tmp/GT_{:03d}.png'.format(i), nrow=nrow, padding=padding,
+    torchvision.utils.save_image(GT, f'tmp/GT_{i:03d}.png', nrow=nrow, padding=padding,
                                  normalize=False)

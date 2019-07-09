@@ -1,5 +1,5 @@
 #### general settings
-name: 001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S
+name: 001_EDVRwoTSA_scratch_lr4e-4_bs32_600k_REDS_LrCAR4S
 use_tb_logger: true
 model: VideoSR_base
 distortion: sr
@@ -21,9 +21,9 @@ datasets:
     N_frames: 5
     use_shuffle: true
     n_workers: 3      # per GPU. Number of workers for dataset loader
-    batch_size: 24    # must be a multiple of number of GPUs (default:32=8*4 for 8 GPUs)
+    batch_size: 192   # must be a multiple of number of GPUs [192=32*6, 32/48/64 per GPU needs 12/14/16GB resp.](was:32=8*4 for 8 GPUs)
     GT_size: 256      # size of patches for HR
-    LQ_size: 64       # size of patches for LR
+    LQ_size: 64       # size of patches for LR (disable LR input with LQ_size=HQ_size)
     use_flip: true
     use_rot: true
     color: RGB
@@ -39,18 +39,18 @@ network_G:
   nf: 64              # number of feature channels
   nframes: 5          # number of frames
   groups: 8           # number of deformable convolution groups
-  front_RBs: 5        # front residual buffers
-  back_RBs: 10        # back residual buffers
+  front_RBs: 5        # front residual buffers (feature extraction)
+  back_RBs: 10        # back residual buffers (reconstruction)
   predeblur: false    # pre-deblurring
   HR_in: false        # if HR image, adds 2 conv2d to scale input image down e.g. 4k -> 720p
   w_TSA: false        # with Temporal and Spatial Attention
 
 #### path
 path:
-  #pretrain_model_G: ~
-  #resume_state: ~
-  pretrain_model_G: ../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/models/361000_G.pth
-  resume_state: ../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/training_state/361000.state
+  pretrain_model_G: ~
+  resume_state: ~
+  #pretrain_model_G: ../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/models/361000_G.pth
+  #resume_state: ../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/training_state/361000.state
   strict_load: true
 
 #### training settings: learning rate scheme, loss
@@ -66,8 +66,8 @@ train:
   restart_weights: [1, 1, 1]                  # params for Cosine Annealing
   eta_min: !!float 1e-7                       # params for Cosine Annealing
 
-  pixel_criterion: cb # cb (Charbonnier) | l1 | l2
-  pixel_weight: 1.0
+  pixel_criterion: cb   # cb (Charbonnier) | l1 | l2
+  pixel_weight: 1.0     # pixel loss scale factor (1=no scaling)
   val_freq: !!float 2e3 # validation frequency
 
   manual_seed: 0

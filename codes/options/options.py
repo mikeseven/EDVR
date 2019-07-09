@@ -108,9 +108,9 @@ def check_resume(opt, resume_iter):
             logger.warning('pretrain_model path will be ignored when resuming training.')
 
         opt['path']['pretrain_model_G'] = osp.join(opt['path']['models'],
-                                                   '{}_G.pth'.format(resume_iter))
+                                                   f'{resume_iter}_G.pth')
         logger.info('Set [pretrain_model_G] to ' + opt['path']['pretrain_model_G'])
         if 'gan' in opt['model']:
             opt['path']['pretrain_model_D'] = osp.join(opt['path']['models'],
-                                                       '{}_D.pth'.format(resume_iter))
+                                                       f'{resume_iter}_D.pth')
             logger.info('Set [pretrain_model_D] to ' + opt['path']['pretrain_model_D'])

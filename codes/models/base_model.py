@@ -77,7 +77,7 @@ class BaseModel():
         return s, n
 
     def save_network(self, network, network_label, iter_label):
-        save_filename = '{}_{}.pth'.format(iter_label, network_label)
+        save_filename = f'{iter_label}_{network_label}.pth'
         save_path = os.path.join(self.opt['path']['models'], save_filename)
         if isinstance(network, nn.DataParallel) or isinstance(network, DistributedDataParallel):
             network = network.module

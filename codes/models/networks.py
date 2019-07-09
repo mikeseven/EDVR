@@ -16,6 +16,6 @@ def define_G(opt):
                               predeblur=opt_net['predeblur'], HR_in=opt_net['HR_in'],
                               w_TSA=opt_net['w_TSA'])
     else:
-        raise NotImplementedError('Generator model [{:s}] not recognized'.format(which_model))
+        raise NotImplementedError(f'Generator model [{which_model}] not recognized')
 
     return netG

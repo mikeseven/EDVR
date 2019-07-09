@@ -77,7 +77,7 @@ def main():
                 from torch.utils.tensorboard import SummaryWriter
             else:
                 logger.info(
-                    'You are using PyTorch {}. Tensorboard will use [tensorboardX]'.format(version))
+                    f'You are using PyTorch {version}. Tensorboard will use [tensorboardX]')
                 from tensorboardX import SummaryWriter
             tb_logger = SummaryWriter(log_dir='../tb_logger/' + opt['name'])
     else:
@@ -92,7 +92,7 @@ def main():
     if seed is None:
         seed = random.randint(1, 10000)
     if rank <= 0:
-        logger.info('Random seed: {}'.format(seed))
+        logger.info(f'Random seed: {seed}')
     util.set_random_seed(seed)
 
     torch.backends.cudnn.benckmark = True
@@ -113,19 +113,16 @@ def main():
                 train_sampler = None
             train_loader = create_dataloader(train_set, dataset_opt, opt, train_sampler)
             if rank <= 0:
-                logger.info('Number of train images: {:,d}, iters: {:,d}'.format(
-                    len(train_set), train_size))
-                logger.info('Total epochs needed: {:d} for iters {:,d}'.format(
-                    total_epochs, total_iters))
+                logger.info(f'Number of train images: {len(train_set):,}, iters: {train_size:,}')
+                logger.info(f'Total epochs needed: {total_epochs} for iters {total_iters:,}')
         elif phase == 'val':
             pass
             '''val_set = create_dataset(dataset_opt)
             val_loader = create_dataloader(val_set, dataset_opt, opt, None)
             if rank <= 0:
-                logger.info('Number of val images in [{:s}]: {:d}'.format(
-                    dataset_opt['name'], len(val_set)))'''
+                logger.info(f'Number of val images in [{dataset_opt['name']}]: {len(val_set)}')'''
         else:
-            raise NotImplementedError('Phase [{:s}] is not recognized.'.format(phase))
+            raise NotImplementedError(f'Phase [{phase}] is not recognized.')
     assert train_loader is not None
 
     #### create model
@@ -133,8 +130,7 @@ def main():
 
     #### resume training
     if resume_state:
-        logger.info('Resuming training from epoch: {}, iter: {}.'.format(
-            resume_state['epoch'], resume_state['iter']))
+        logger.info(f"Resuming training from epoch: {resume_state['epoch']}, iter: {resume_state['iter']}.")
 
         start_epoch = resume_state['epoch']
         current_step = resume_state['iter']
@@ -144,7 +140,7 @@ def main():
         start_epoch = 0
 
     #### training
-    logger.info('Start training from epoch: {:d}, iter: {:d}'.format(start_epoch, current_step))
+    logger.info(f'Start training from epoch: {start_epoch}, iter: {current_step}')
     for epoch in range(start_epoch, total_epochs + 1):
         if opt['dist']:
             train_sampler.set_epoch(epoch)
@@ -162,12 +158,12 @@ def main():
             #### log
             if current_step % opt['logger']['print_freq'] == 0:
                 logs = model.get_current_log()
-                message = '<epoch:{:3d}, iter:{:8,d}, lr:('.format(epoch, current_step)
+                message = f'<epoch:{epoch:3d}, iter:{current_step:,8d}, lr:(')
                 for v in model.get_current_learning_rate():
-                    message += '{:.3e},'.format(v)
+                    message += f'{v:.3e},'
                 message += ')>'
                 for k, v in logs.items():
-                    message += '{:s}: {:.4e} '.format(k, v)
+                    message += f'{k}: {v:.4e} '
                     # tensorboard logger
                     if opt['use_tb_logger'] and 'debug' not in opt['name']:
                         if rank <= 0:
@@ -195,7 +191,7 @@ def main():
 
                     # Save SR images for reference
                     save_img_path = os.path.join(img_dir,
-                                                 '{:s}_{:d}.png'.format(img_name, current_step))
+                                                 f'{img_name}_{current_step}.png')
                     util.save_img(sr_img, save_img_path)
 
                     # calculate PSNR
@@ -209,10 +205,9 @@ def main():
                 avg_psnr = avg_psnr / idx
 
                 # log
-                logger.info('# Validation # PSNR: {:.4e}'.format(avg_psnr))
+                logger.info(f'# Validation # PSNR: {avg_psnr:.4e}')
                 logger_val = logging.getLogger('val')  # validation logger
-                logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e}'.format(
-                    epoch, current_step, avg_psnr))
+                logger_val.info(f'<epoch:{epoch:3d}, iter:{current_step:8d}> psnr: {avg_psnr:.4e}')
                     
                 # tensorboard logger
                 if opt['use_tb_logger'] and 'debug' not in opt['name']:

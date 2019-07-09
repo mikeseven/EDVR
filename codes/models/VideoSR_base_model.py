@@ -44,7 +44,7 @@ class VideoSRBaseModel(BaseModel):
             elif loss_type == 'cb':
                 self.cri_pix = CharbonnierLoss().to(self.device)
             else:
-                raise NotImplementedError('Loss type [{:s}] is not recognized.'.format(loss_type))
+                raise NotImplementedError(f'Loss type [{loss_type}] is not recognized.')
             self.l_pix_w = train_opt['pixel_weight']
 
             #### optimizers
@@ -60,7 +60,7 @@ class VideoSRBaseModel(BaseModel):
                             normal_params.append(v)
                     else:
                         if self.rank <= 0:
-                            logger.warning('Params [{:s}] will not optimize.'.format(k))
+                            logger.warning(f'Params [{k}] will not optimize.')
                 optim_params = [
                     {  # add normal params first
                         'params': normal_params,
@@ -78,7 +78,7 @@ class VideoSRBaseModel(BaseModel):
                         optim_params.append(v)
                     else:
                         if self.rank <= 0:
-                            logger.warning('Params [{:s}] will not optimize.'.format(k))
+                            logger.warning(f'Params [{k}] will not optimize.')
 
             self.optimizer_G = torch.optim.Adam(optim_params, lr=train_opt['lr_G'],
                                                 weight_decay=wd_G,
@@ -148,18 +148,18 @@ class VideoSRBaseModel(BaseModel):
     def print_network(self):
         s, n = self.get_network_description(self.netG)
         if isinstance(self.netG, nn.DataParallel):
-            net_struc_str = '{} - {}'.format(self.netG.__class__.__name__,
-                                             self.netG.module.__class__.__name__)
+            net_struc_str = f'{self.netG.__class__.__name__} - {self.netG.module.__class__.__name__}'
+                                             )
         else:
-            net_struc_str = '{}'.format(self.netG.__class__.__name__)
+            net_struc_str = f'{self.netG.__class__.__name__}'
         if self.rank <= 0:
-            logger.info('Network G structure: {}, with parameters: {:,d}'.format(net_struc_str, n))
+            logger.info(f'Network G structure: {net_struc_str}, with parameters: {n:,}')
             logger.info(s)
 
     def load(self):
         load_path_G = self.opt['path']['pretrain_model_G']
         if load_path_G is not None:
-            logger.info('Loading model for G [{:s}] ...'.format(load_path_G))
+            logger.info(f'Loading model for G [{load_path_G}] ...')
             self.load_network(load_path_G, self.netG, self.opt['path']['strict_load'])
 
     def save(self, iter_label):
