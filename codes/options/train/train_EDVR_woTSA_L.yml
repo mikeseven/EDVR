@@ -1,0 +1,78 @@
+#### general settings
+name: 001_EDVRwoTSA_scratch_lr4e-4_bs4_L_600k_REDS_LrCAR4S
+use_tb_logger: true
+model: VideoSR_base
+distortion: sr
+scale: 4
+gpu_ids: [0,1,2,3,4,5]
+
+#### datasets
+datasets:
+  train:
+    name: REDS
+    mode: REDS
+    interval_list: [1]    # for temporal augmentation
+    random_reverse: false # for temporal augmentation
+    border_mode: false
+    dataroot_GT: /home/cdsw/EDVR/datasets/REDS/train/sharp_wval.lmdb
+    dataroot_LQ: /home/cdsw/EDVR/datasets/REDS/train/sharp_bicubic_wval.lmdb
+    cache_keys: REDS_trainval_keys.pkl
+
+    N_frames: 5
+    use_shuffle: true
+    n_workers: 3      # per GPU. Number of workers for dataset loader
+    batch_size: 24    # must be a multiple of number of GPUs (for L model, 16 per GPU needs ~13GB)
+    GT_size: 256      # size of patches for HR
+    LQ_size: 64       # size of patches for LR (disable LR input with LQ_size=HQ_size)
+    use_flip: true
+    use_rot: true
+    color: RGB
+  val:
+    name: val_REDS4
+    mode: REDS # REDS validation set with LQ (LR) and GT pairs
+    dataroot_GT: /home/cdsw/EDVR/datasets/REDS4/GT
+    dataroot_LQ: /home/cdsw/EDVR/datasets/REDS4/sharp_bicubic
+
+#### network structures
+network_G:
+  which_model_G: EDVR
+  nf: 128           # number of feature channels
+  nframes: 5        # number of frames
+  groups: 8         # number of deformable convolution groups
+  front_RBs: 5      # front residual buffers (feature extraction)
+  back_RBs: 40      # back residual buffers (reconstruction)
+  predeblur: false  # pre-deblurring
+  HR_in: false      # if HR image, adds 2 conv2d to scale input image down e.g. 4k -> 720p
+  w_TSA: false      # with Temporal and Spatial Attention
+
+#### path
+path:
+  pretrain_model_G: ~
+  resume_state: ~
+  #pretrain_model_G: ../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/models/361000_G.pth
+  #resume_state: ../experiments/001_EDVRwoTSA_scratch_lr4e-4_600k_REDS_LrCAR4S/training_state/361000.state
+  strict_load: true
+
+#### training settings: learning rate scheme, loss
+train:
+  lr_G: !!float 4e-4 # 4e-4 for 8 GPUs and 32 batch
+  beta1: 0.9          # Adam beta1
+  beta2: 0.99         # Adam beta2
+  niter: 600000       # total number of iterations
+  warmup_iter: -1  # -1: no warm up
+  lr_scheme: CosineAnnealingLR_Restart        # or MultiStepLR
+  T_period: [150000, 150000, 150000, 150000]  # params for Cosine Annealing (SGD with warm restarts)
+  restarts: [150000, 300000, 450000]          # params for Cosine Annealing
+  restart_weights: [1, 1, 1]                  # params for Cosine Annealing
+  eta_min: !!float 1e-7                       # params for Cosine Annealing
+
+  pixel_criterion: cb   # cb (Charbonnier) | l1 | l2
+  pixel_weight: 1.0     # pixel loss scale factor (1=no scaling)
+  val_freq: !!float 2e3 # validation frequency
+
+  manual_seed: 0
+
+#### logger
+logger:
+  print_freq: 100                     # print frequency
+  save_checkpoint_freq: !!float 5e2   # checkpoint frequency
