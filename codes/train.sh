@@ -14,9 +14,10 @@ source activate pytorch
 
 NUM_GPUS=6      # for GPU training
 MODEL=EDVR
-MODEL_SIZE=L    # Large (L) or Medium (M)
+MODEL_SIZE=M    # Large (L) or Medium (M)
 LR=4e-4         # learning rate
 BS=16           # batch size per GPU
+EXT=_noinplace
 
 ### stage 1
 #python train.py -opt options/train/train_${MODEL}_woTSA_${MODEL_SIZE}.yml \
@@ -25,7 +26,7 @@ BS=16           # batch size per GPU
 python -m torch.distributed.launch --nproc_per_node=$NUM_GPUS --master_port=4321 \
   train.py -opt options/train/train_${MODEL}_woTSA_${MODEL_SIZE}.yml \
   --launcher pytorch \
-  > ${MODEL}_woTSA_train_${LR}_bs${BS}_${MODEL_SIZE}.log 2>&1 & disown
+  > ${MODEL}_woTSA_train_${LR}_bs${BS}_${MODEL_SIZE}${EXT}.log 2>&1 & disown
 
 ### stage 2
 #python train.py -opt options/train/train_${MODEL}_${MODEL_SIZE}.yml \

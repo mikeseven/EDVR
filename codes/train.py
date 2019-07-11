@@ -158,7 +158,7 @@ def main():
             #### log
             if current_step % opt['logger']['print_freq'] == 0:
                 logs = model.get_current_log()
-                message = f'<epoch:{epoch:3d}, iter:{current_step:,8d}, lr:(')
+                message = f'<epoch:{epoch:3d}, iter:{current_step:8d}, lr:('
                 for v in model.get_current_learning_rate():
                     message += f'{v:.3e},'
                 message += ')>'

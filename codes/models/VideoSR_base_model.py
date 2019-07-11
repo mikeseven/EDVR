@@ -149,7 +149,6 @@ class VideoSRBaseModel(BaseModel):
         s, n = self.get_network_description(self.netG)
         if isinstance(self.netG, nn.DataParallel):
             net_struc_str = f'{self.netG.__class__.__name__} - {self.netG.module.__class__.__name__}'
-                                             )
         else:
             net_struc_str = f'{self.netG.__class__.__name__}'
         if self.rank <= 0:

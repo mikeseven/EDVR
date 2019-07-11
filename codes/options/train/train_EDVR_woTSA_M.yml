@@ -1,5 +1,5 @@
 #### general settings
-name: 001_EDVRwoTSA_scratch_lr4e-4_bs32_600k_REDS_LrCAR4S
+name: 001_EDVRwoTSA_scratch_lr4e-4_bs16_600k_noinplace_REDS_LrCAR4S
 use_tb_logger: true
 model: VideoSR_base
 distortion: sr
@@ -21,7 +21,7 @@ datasets:
     N_frames: 5
     use_shuffle: true
     n_workers: 3      # per GPU. Number of workers for dataset loader
-    batch_size: 192   # must be a multiple of number of GPUs [192=32*6, 32/48/64 per GPU needs 12/14/16GB resp.](was:32=8*4 for 8 GPUs)
+    batch_size: 96   # must be a multiple of number of GPUs [192=32*6, 32/48/64 per GPU needs 12/14/16GB resp.](was:32=8*4 for 8 GPUs)
     GT_size: 256      # size of patches for HR
     LQ_size: 64       # size of patches for LR (disable LR input with LQ_size=HQ_size)
     use_flip: true
