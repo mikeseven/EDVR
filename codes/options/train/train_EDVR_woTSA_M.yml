@@ -1,5 +1,5 @@
 #### general settings
-name: 001_EDVRwoTSA_scratch_lr4e-4_bs16_600k_noinplace_REDS_LrCAR4S
+name: 001_EDVRwoTSA_scratch_lr4e-4_bs16_600k_noinplace_rb_REDS_LrCAR4S
 use_tb_logger: true
 model: VideoSR_base
 distortion: sr

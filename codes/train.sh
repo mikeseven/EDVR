@@ -17,7 +17,7 @@ MODEL=EDVR
 MODEL_SIZE=M    # Large (L) or Medium (M)
 LR=4e-4         # learning rate
 BS=16           # batch size per GPU
-EXT=_noinplace
+EXT=_noinplace_rb
 
 ### stage 1
 #python train.py -opt options/train/train_${MODEL}_woTSA_${MODEL_SIZE}.yml \
