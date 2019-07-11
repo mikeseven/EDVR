@@ -47,7 +47,7 @@ class ResidualBlock_noBN(nn.Module):
 
     def forward(self, x):
         identity = x
-        out = F.relu(self.conv1(x))
+        out = F.relu(self.conv1(x), inplace=True)
         out = self.conv2(out)
         return identity + out
 
