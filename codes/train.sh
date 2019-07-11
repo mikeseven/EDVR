@@ -13,11 +13,11 @@ tensorboard --port $CDSW_PUBLIC_PORT --logdir $PWD/../tb_logger > /dev/null 2>&1
 source activate pytorch
 
 NUM_GPUS=6      # for GPU training
-MODEL=EDVR
+MODEL=edvr
 MODEL_SIZE=M    # Large (L) or Medium (M)
 LR=4e-4         # learning rate
 BS=16           # batch size per GPU
-EXT=_noinplace_rb
+EXT=_noinplace
 
 ### stage 1
 #python train.py -opt options/train/train_${MODEL}_woTSA_${MODEL_SIZE}.yml \

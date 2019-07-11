@@ -3,6 +3,7 @@ from collections import OrderedDict
 
 import torch
 import torch.nn as nn
+import torch.distributed as dist
 from torch.nn.parallel import DataParallel, DistributedDataParallel
 import models.networks as networks
 import models.lr_scheduler as lr_scheduler
@@ -11,6 +12,23 @@ from models.modules.loss import CharbonnierLoss
 
 logger = logging.getLogger('base')
 
+
+def sync_initial_weights(model, rank, world_size):
+    for param in model.parameters():
+        if rank == 0:
+            # Rank 0 is sending it's own weight
+            # to all it's siblings (1 to world_size)
+            for sibling in range(1, world_size):
+                dist.send(param.data, dst=sibling)
+        else:
+            # Siblings must receive the parameters
+            dist.recv(param.data, src=0)
+
+def average_gradients(model):
+    size = float(dist.get_world_size())
+    for param in model.parameters():
+        dist.all_reduce(param.grad.data, op=dist.reduce_op.SUM)
+        param.grad.data /= size
 
 class VideoSRBaseModel(BaseModel):
     def __init__(self, opt):
@@ -123,10 +141,11 @@ class VideoSRBaseModel(BaseModel):
 
         l_pix = self.l_pix_w * self.cri_pix(self.fake_H, self.real_H)
         l_pix.backward()
+
         self.optimizer_G.step()
 
         # set log
-        self.log_dict['l_pix'] = l_pix.item()
+        self.log_dict['l_pix_'+self.rank] = l_pix.item()
 
     def test(self):
         self.netG.eval()
