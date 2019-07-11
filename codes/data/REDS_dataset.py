@@ -47,9 +47,9 @@ class REDSDataset(data.Dataset):
             logger.info(f"Using cache keys: {opt['cache_keys']}")
             cache_keys = opt['cache_keys']
         else:
-            cache_keys = 'REDS_trainval_keys.pkl'
+            cache_keys = './data/REDS_trainval_keys.pkl'
         logger.info(f'Using cache keys - {cache_keys}.')
-        self.paths_GT = pickle.load(open(f'./data/{cache_keys}', 'rb'))
+        self.paths_GT = pickle.load(open(f'{cache_keys}', 'rb'))
         # remove the REDS4 for testing
         self.paths_GT = [
             v for v in self.paths_GT if v.split('_')[0] not in ['000', '011', '015', '020']

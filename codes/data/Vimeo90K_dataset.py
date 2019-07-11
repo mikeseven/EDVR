@@ -57,9 +57,9 @@ class Vimeo90KDataset(data.Dataset):
             logger.info(f"Using cache keys: {opt['cache_keys']}")
             cache_keys = opt['cache_keys']
         else:
-            cache_keys = 'Vimeo90K_train_keys.pkl'
+            cache_keys = './data/Vimeo90K_train_keys.pkl'
         logger.info(f'Using cache keys - {cache_keys}.')
-        self.paths_GT = pickle.load(open(f'./data/{cache_keys}', 'rb'))
+        self.paths_GT = pickle.load(open(f'{cache_keys}', 'rb'))
         assert self.paths_GT, 'Error: GT path is empty.'
 
         if self.data_type == 'lmdb':
