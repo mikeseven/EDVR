@@ -36,7 +36,7 @@ class Predeblur_ResNet_Pyramid(nn.Module):
         self.deblur_L2_conv = nn.Conv2d(nf, nf, 3, 2, 1, bias=True)
         self.deblur_L3_conv = nn.Conv2d(nf, nf, 3, 2, 1, bias=True)
 
-        self.lrelu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
+        self.lrelu = nn.LeakyReLU(negative_slope=0.1)
 
     def forward(self, x):
         if self.HR_in:
@@ -90,7 +90,7 @@ class PCD_Align(nn.Module):
         self.cas_dcnpack = DCN_sep(nf, nf, 3, stride=1, padding=1, dilation=1,
                                    deformable_groups=groups)
 
-        self.lrelu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
+        self.lrelu = nn.LeakyReLU(negative_slope=0.1)
 
     def forward(self, nbr_fea_l, ref_fea_l):
         '''align other neighboring frames to the reference frame in the feature level
@@ -158,7 +158,7 @@ class TSA_Fusion(nn.Module):
         self.sAtt_add_1 = nn.Conv2d(nf, nf, 1, 1, bias=True)
         self.sAtt_add_2 = nn.Conv2d(nf, nf, 1, 1, bias=True)
 
-        self.lrelu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
+        self.lrelu = nn.LeakyReLU(negative_slope=0.1)
 
     def forward(self, aligned_fea):
         B, N, C, H, W = aligned_fea.size()  # N video frames
@@ -247,7 +247,7 @@ class EDVR(nn.Module):
         self.conv_last = nn.Conv2d(64, 3, 3, 1, 1, bias=True)
 
         #### activation function
-        self.lrelu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
+        self.lrelu = nn.LeakyReLU(negative_slope=0.1)
 
     def forward(self, x):
         B, N, C, H, W = x.size()  # N video frames
