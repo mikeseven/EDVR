@@ -60,7 +60,7 @@ class VideoSRBaseModel(BaseModel):
             elif loss_type == 'l2':
                 self.cri_pix = nn.MSELoss(reduction='mean').to(self.device)
             elif loss_type == 'cb':
-                self.cri_pix = CharbonnierLoss().to(self.device)
+                self.cri_pix = CharbonnierLoss(reduction='mean').to(self.device)
             else:
                 raise NotImplementedError(f'Loss type [{loss_type}] is not recognized.')
             self.l_pix_w = train_opt['pixel_weight']
@@ -145,7 +145,7 @@ class VideoSRBaseModel(BaseModel):
         self.optimizer_G.step()
 
         # set log
-        self.log_dict['l_pix_'+self.rank] = l_pix.item()
+        self.log_dict[f'l_pix_{self.rank}'] = l_pix.item()
 
     def test(self):
         self.netG.eval()

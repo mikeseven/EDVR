@@ -61,6 +61,8 @@ class Vimeo90KDataset(data.Dataset):
         logger.info(f'Using cache keys - {cache_keys}.')
         self.paths_GT = pickle.load(open(f'{cache_keys}', 'rb'))
         assert self.paths_GT, 'Error: GT path is empty.'
+        if 'meta_info.pkl' in cache_keys:
+            self.paths_GT = self.paths_GT['keys']
 
         if self.data_type == 'lmdb':
             self.GT_env, self.LQ_env = None, None

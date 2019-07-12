@@ -16,7 +16,7 @@ datasets:
     border_mode: false
     dataroot_GT: /home/cdsw/EDVR/datasets/REDS/train/sharp_wval.lmdb
     dataroot_LQ: /home/cdsw/EDVR/datasets/REDS/train/sharp_bicubic_wval.lmdb
-    cache_keys: /home/cdsw/EDVR/datasets/REDS/train/sharp_wval.lmdb/meta-info.pkl
+    cache_keys: /home/cdsw/EDVR/datasets/REDS/train/sharp_wval.lmdb/meta_info.pkl
 
     N_frames: 5
     use_shuffle: true

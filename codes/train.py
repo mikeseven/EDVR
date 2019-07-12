@@ -70,19 +70,30 @@ def main():
                           screen=True, tofile=True)
         logger = logging.getLogger('base')
         logger.info(option.dict2str(opt))
-        # tensorboard logger
-        if opt['use_tb_logger'] and 'debug' not in opt['name']:
-            version = float(torch.__version__[0:3])
-            if version >= 1.1:  # PyTorch 1.1
-                from torch.utils.tensorboard import SummaryWriter
-            else:
-                logger.info(
-                    f'You are using PyTorch {version}. Tensorboard will use [tensorboardX]')
-                from tensorboardX import SummaryWriter
-            tb_logger = SummaryWriter(log_dir='../tb_logger/' + opt['name'])
+#        # tensorboard logger
+#        if opt['use_tb_logger'] and 'debug' not in opt['name']:
+#            version = float(torch.__version__[0:3])
+#            if version >= 1.1:  # PyTorch 1.1
+#                from torch.utils.tensorboard import SummaryWriter
+#            else:
+#                logger.info(
+#                    f'You are using PyTorch {version}. Tensorboard will use [tensorboardX]')
+#                from tensorboardX import SummaryWriter
+#            tb_logger = SummaryWriter(log_dir='../tb_logger/' + opt['name'])
     else:
         util.setup_logger('base', opt['path']['log'], 'train', level=logging.INFO, screen=True)
         logger = logging.getLogger('base')
+
+    # tensorboard logger
+    if opt['use_tb_logger'] and 'debug' not in opt['name']:
+        version = float(torch.__version__[0:3])
+        if version >= 1.1:  # PyTorch 1.1
+            from torch.utils.tensorboard import SummaryWriter
+        else:
+            logger.info(
+                f'You are using PyTorch {version}. Tensorboard will use [tensorboardX]')
+            from tensorboardX import SummaryWriter
+        tb_logger = SummaryWriter(log_dir='../tb_logger/' + opt['name'])
 
     # convert to NoneDict, which returns None for missing keys
     opt = option.dict_to_nonedict(opt)
@@ -166,10 +177,10 @@ def main():
                     message += f'{k}: {v:.4e} '
                     # tensorboard logger
                     if opt['use_tb_logger'] and 'debug' not in opt['name']:
-                        if rank <= 0:
-                            tb_logger.add_scalar(k, v, current_step)
-                if rank <= 0:
-                    logger.info(message)
+                        #if rank <= 0:
+                        tb_logger.add_scalar(k, v, current_step)
+                #if rank <= 0:
+                logger.info(message)
 
             #### validation
             if current_step % opt['train']['val_freq'] == 0 and rank <= 0:

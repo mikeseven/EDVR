@@ -1,5 +1,5 @@
 #### general settings
-name: 001_EDVRwoTSA_scratch_lr4e-4_bs16_600k_noinplace_rb_REDS_LrCAR4S
+name: 001_EDVRwoTSA_scratch_lr1e-3_bs16_600k_noinplace_REDS_LrCAR4S
 use_tb_logger: true
 model: VideoSR_base
 distortion: sr
@@ -16,7 +16,7 @@ datasets:
     border_mode: false
     dataroot_GT: /home/cdsw/EDVR/datasets/REDS/train/sharp_wval.lmdb
     dataroot_LQ: /home/cdsw/EDVR/datasets/REDS/train/sharp_bicubic_wval.lmdb
-    cache_keys: /home/cdsw/EDVR/datasets/REDS/train/sharp_wval.lmdb/meta-info.pkl
+    cache_keys: /home/cdsw/EDVR/datasets/REDS/train/sharp_wval.lmdb/meta_info.pkl
 
     N_frames: 5
     use_shuffle: true
@@ -55,7 +55,7 @@ path:
 
 #### training settings: learning rate scheme, loss
 train:
-  lr_G: !!float 4e-4 # 4e-4 for 8 GPUs and 32 batch
+  lr_G: !!float 1e-3  # 4e-4 for 8 GPUs and 32 batch
   beta1: 0.9          # Adam beta1
   beta2: 0.99         # Adam beta2
   niter: 600000       # total number of iterations
