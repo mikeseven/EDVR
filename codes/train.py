@@ -70,30 +70,19 @@ def main():
                           screen=True, tofile=True)
         logger = logging.getLogger('base')
         logger.info(option.dict2str(opt))
-#        # tensorboard logger
-#        if opt['use_tb_logger'] and 'debug' not in opt['name']:
-#            version = float(torch.__version__[0:3])
-#            if version >= 1.1:  # PyTorch 1.1
-#                from torch.utils.tensorboard import SummaryWriter
-#            else:
-#                logger.info(
-#                    f'You are using PyTorch {version}. Tensorboard will use [tensorboardX]')
-#                from tensorboardX import SummaryWriter
-#            tb_logger = SummaryWriter(log_dir='../tb_logger/' + opt['name'])
+        # tensorboard logger
+        if opt['use_tb_logger'] and 'debug' not in opt['name']:
+            version = float(torch.__version__[0:3])
+            if version >= 1.1:  # PyTorch 1.1
+                from torch.utils.tensorboard import SummaryWriter
+            else:
+                logger.info(
+                    f'You are using PyTorch {version}. Tensorboard will use [tensorboardX]')
+                from tensorboardX import SummaryWriter
+            tb_logger = SummaryWriter(log_dir='../tb_logger/' + opt['name'])
     else:
         util.setup_logger('base', opt['path']['log'], 'train', level=logging.INFO, screen=True)
         logger = logging.getLogger('base')
-
-    # tensorboard logger
-    if opt['use_tb_logger'] and 'debug' not in opt['name']:
-        version = float(torch.__version__[0:3])
-        if version >= 1.1:  # PyTorch 1.1
-            from torch.utils.tensorboard import SummaryWriter
-        else:
-            logger.info(
-                f'You are using PyTorch {version}. Tensorboard will use [tensorboardX]')
-            from tensorboardX import SummaryWriter
-        tb_logger = SummaryWriter(log_dir='../tb_logger/' + opt['name'])
 
     # convert to NoneDict, which returns None for missing keys
     opt = option.dict_to_nonedict(opt)
@@ -170,17 +159,27 @@ def main():
             if current_step % opt['logger']['print_freq'] == 0:
                 logs = model.get_current_log()
                 message = f'<epoch:{epoch:3d}, iter:{current_step:8d}, lr:('
-                for v in model.get_current_learning_rate():
+                for i, v in enumerate(model.get_current_learning_rate()):
+                    if rank <= 0 :
+                        tb_logger.add_scalar(f'lr_{i}', v, current_step)
                     message += f'{v:.3e},'
                 message += ')>'
+                loss=float(0)
+                num=float(0)
                 for k, v in logs.items():
-                    message += f'{k}: {v:.4e} '
-                    # tensorboard logger
-                    if opt['use_tb_logger'] and 'debug' not in opt['name']:
-                        #if rank <= 0:
-                        tb_logger.add_scalar(k, v, current_step)
-                #if rank <= 0:
-                logger.info(message)
+                    if 'l_pix_' in k:
+                        num += 1
+                        loss += v
+                if num > 0:
+                    loss /= num
+                    message += f'loss: {loss:.4e} '
+                    
+                # tensorboard logger
+                if opt['use_tb_logger'] and 'debug' not in opt['name']:
+                    if rank <= 0:
+                        tb_logger.add_scalar('loss', loss, current_step)
+                if rank <= 0:
+                    logger.info(message)
 
             #### validation
             if current_step % opt['train']['val_freq'] == 0 and rank <= 0:
@@ -236,7 +235,9 @@ def main():
         model.save('latest')
         logger.info('End of training.')
 
-    tb_logger.close()
+    if opt['use_tb_logger'] and 'debug' not in opt['name']:
+        if rank <= 0:
+            tb_logger.close()
 
 
 if __name__ == '__main__':
